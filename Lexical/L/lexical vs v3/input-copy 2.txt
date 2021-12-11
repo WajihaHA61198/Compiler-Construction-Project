@@ -1,0 +1,36 @@
+import math
+
+main(){
+
+int a=5
+float b = 5.5
+string ad = "asdasfsdgfdfgdfdadasdas\"das"
+char ae = '\n'
+char at = '\''
+char at = '\"'
+
+switch(an){
+
+case(a){ print("asxa") 
+break}
+case(b){
+print(123)
+break
+}
+case(c){
+
+	print("Hello")
+ break;
+}
+
+default{
+	ned = "asdassfdfd"
+}
+
+
+}
+
+
+
+
+}

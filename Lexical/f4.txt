@@ -1,0 +1,912 @@
+using System;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
+namespace LA  
+{
+    class Program
+    {
+        // ---REGEX---
+
+        //static Regex RE_id  = new Regex(@"^@?[A-Za-z]+_*[A-Za-z\d]+$"); //id
+        static Regex RE_digit = new Regex(@"^[+-]?\d+$"); //integer constant
+        // static Regex RE_float = new Regex(@"^[+-]?\d*.\d+$"); //float constant
+        //static Regex RE_constant = new Regex(@"^\'(\\[\'\\\""bfnrt0]|\w|[!-/:-@[-`{-~])\'$"); //char constant
+        static Regex RE_alpha = new Regex(@"^[A-Za-z]$");
+        // static Regex RE_digit = new Regex(@"^[+-][0-9]$");
+        static Regex RE_punc = new Regex(@"^,|.|;|[|]|(|)|{|}|_|:$"); 
+        static Regex RE_id = new Regex(@"^([a-zA-Z]+_*[0-9]*)$");
+        //======================================================================================
+
+        // ---LIST -> Symbols---
+        static IDictionary<char, string> symbol_list = new Dictionary<char, string>()
+        {
+          {'(', "("},  {')', ")"},  {'{', "{"}, {'}', "}"}, {'[', "["},  {']', "]"},  {'#', "commentor"},  {'@', "lexical_error"},
+          {'$', "lexical_error"}, {'^', "lexical_error"},  {'`', "lexical_error"},  {'~', "lexical_error"},  {';',";"},
+          {':',":"}, {',',","},  {'?',"lex_error"},  {'\\',"lex_error"},  {'/',"lex_error"}
+        };
+        //======================================================================================
+
+        // ---LIST -> KW---
+        static IDictionary<string, string> KW_list = new Dictionary<string, string>() //keyword_list
+        {
+          {"Console","System class"},  {"WriteLine","I/O"},  {"Write","I/O"},  {"ReadLine","I/O"},  {"ReadKey","I/O"}, 
+          {"int","dt"},  {"float","dt"},   {"str","dt"},   {"char","dt"},   {"List","list"},   {"public","access-modifier"}, 
+          {"private","access-modifier"},  {"protected","access-modifier"},   {"static","static"},  {"abstract","abstract"},  
+          {"sealed","sealed"},  {"struct","struct"},  {"func","func"},  {"main","main"},   {"class","class"},   {"void","void"},
+          {"return","return"},  {"while","while"},   {"if","if"},   {"else","else"},   {"for","for"},   {"do","do"},  
+          {"break","break"},  {"continue","continue"},   {"true","bool-const"},   {"false","bool-const"},   {"new","new"}, 
+        };
+        //======================================================================================
+
+        static int line = 1;
+        // ---LINE NO#---
+        static bool line_increase(ref int current)  //index -> current
+        {
+            line++;
+            current++;
+            return true;
+        }
+        //=======================================================================================
+
+        // ---lexical error---
+        static bool Invalid_token(string value)  // generate error
+        {
+            string path = "./tokens.txt";
+            string content = "(" + value + ", invalid token" + ", " + line + ")" + Environment.NewLine;
+            try
+            {
+                File.AppendAllText(path, content);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        //=======================================================================================
+
+        // ---Token generate---
+        static bool Valid_token(string value, string class_)
+        {
+            string path = "./tokens.txt";
+            //string content = "(VP-> " + value + " ,CP-> " + class_ + " ,Line#-> " + line_number + " )" + Environment.NewLine;
+            //string content = "(" + value + ", " + class_ + ", " + line_number + ")" + Environment.NewLine;
+            string content = "(" + value + ", " + class_ + ", " + line + ")" + Environment.NewLine;
+            try
+            {
+                File.AppendAllText(path, content);
+                //File.AppendAllText("./tokens_for_syntex.txt", class_ + ',');
+                File.AppendAllText("./tokens_for_syntex.txt", class_ + ','+'\n');
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        //=======================================================================================
+
+        // ---SINGLE-LINE COMMENT---
+        static bool SL_comment(ref string input, ref int current)
+        {
+            while (current < input.Length)
+            {
+                if (input[current] == '\r')  //carriage return is comment breaker
+                {
+                    //current++;
+                    line_increase(ref current);
+                    return true;
+                }
+                current++;   //important -> b/c it go in next line otherwise don't read more file after comment
+            }// whlie loope end
+            return true;
+        }
+        //=======================================================================================
+
+        // ---MULTI-LINE COMMENT---
+        static bool ML_comment(ref string input, ref int current)
+        {
+            while (current < input.Length)   //when to end comment
+            {
+                if (input[current] == '\r')  //carriage return -> \r (13)
+                {
+                    current++;
+                    line_increase(ref current);
+                }
+                if (input[current] == '*')
+                {
+                    if (input[current+1] == '/')
+                    {
+                        current = current + 2;
+                        return true;
+                    }
+                }
+                current++;
+            } // while loop end
+            return true;
+        }
+        //=======================================================================================
+
+        // ---digits---
+        static bool digit_checker(ref string input, ref int current)
+        {
+            string temp = "";
+            bool error_flag = false;
+            temp += input[current];
+            //temp = temp + input[current];
+
+            while (true)
+            {
+                if (RE_digit.IsMatch(input[current+1].ToString()))   //integer
+                {
+                    current++;
+                    temp += input[current];
+                    //temp = temp + input[current];
+                }//
+
+
+                else if (input[current+1] == '.')                     //float   2.
+                {
+                    if (RE_digit.IsMatch(input[current+2].ToString()))    //2.6
+                    {
+                        //current += 1;
+                        //current = current + 1;
+                        current++;                    
+                        temp += input[current];                           //2.
+                        //temp = temp + input[current];
+                        //current += 1;
+                        current++;
+                        temp += input[current];                           //2.6
+                        //temp = temp + input[current];
+                        while (true)   //7.8----
+                        {
+                            if (RE_digit.IsMatch(input[current+1].ToString())) //digit
+                            {
+                                current++;// if after . is digit than it will iterate in loop till next breaker
+                                temp += input[current];
+                                //temp = temp + input[current];
+                                //current++;
+                            }//
+                            else if (RE_alpha.IsMatch(input[current+1].ToString()))   // in case of alpha, . will terminate
+                            {
+                                current++;
+                                // generate_token(temp, "float");
+                                //temp += input[current + 1];
+                                temp += input[current];
+                                //temp = temp + input[current+1];
+                                //current++;
+                                error_flag = true;
+                                // generate_token(temp, "float");
+                                // return true;
+                            }//
+                            else
+                            {
+                                if (error_flag)
+                                {
+                                    current++;
+                                    Invalid_token(temp);
+                                    return false;
+                                }
+                                else
+                                {
+                                    current++;
+                                    Valid_token(temp, "float-const");
+                                    return true;
+                                }
+                            }
+                        }// while loop end
+                    } // if end
+                    else
+                    {
+                        current += 1;
+                        //index++;
+                        temp += input[current];
+                        //temp = temp + input[index];
+                        current++;
+                        Invalid_token(temp);
+                        return false;
+                    }
+                }// float condition end
+                else if (RE_alpha.IsMatch(input[current+1].ToString()))  //7a
+                {
+                    current++;
+                    temp += input[current];
+                    //temp = temp + input[index];
+                    error_flag = true;
+                    // generate_token(temp, "int-const");
+                    // return true;
+                }//
+                else
+                {
+                    current++;
+                    if (error_flag)
+                    {
+                        Invalid_token(temp);
+                        return true;
+                    }
+                    else
+                    {
+                        Valid_token(temp, "int-const");
+                        return true;
+                    }
+                }
+            }
+        }
+        //=======================================================================================
+
+        // ---Punctuators/ Opertors---
+        static bool punctuators(ref string input, ref int current)
+        {
+            string result;
+            string temp = "";
+
+            if (input[current] == '+')
+            {
+                if (input[current + 1] == '+')       // ++
+                {
+                    current += 2;
+                    Valid_token("++", "inc-dec");
+                    return true;
+                }
+                else if (input[current + 1] == '=')  // +=
+                {
+                    current += 2;
+                    Valid_token("+=", "AO");
+                    return true;
+                }
+                // else if (input[index + 1] == '=')
+                // {
+                //     index += 2;
+                //     generate_token("+=", "add_assign");
+                //     return true;
+
+                // }
+                else             // +
+                {
+                    current++;
+                    Valid_token("+", "PM");  
+                    return true;
+                }
+            }//
+
+
+            else if (input[current] == '-')
+            {
+                if (input[current + 1] == '-')       // --
+                {
+                    current += 2;
+                    Valid_token("--", "inc-dec");
+                    return true;
+                }
+                else if (input[current + 1] == '=')  // -=
+                {
+                    current += 2;
+                    Valid_token("-=", "AO");
+                    return true;
+                }
+                // else if (input[index + 1] == '=')
+                // {
+                //     index += 2;
+                //     generate_token("-=", "arthmetic_assign");
+                //     return true;
+                // }
+                else   // -
+                {
+                    current += 1;                  
+                    Valid_token("-", "PM");  //AO
+                    return true;
+                }
+
+            }//
+
+
+
+            else if (input[current] == '*' || input[current] == '/' || input[current] == '%')
+            {
+                if(input[current+1] == '=')  // *=   /=   %=
+                {
+                    //Valid_token(input[current].ToString(), "AO");  // Multiply, Divide, Modulo = MDM (AO)
+                   // current++;
+                    //return true;
+                    if(input[current] == '*')
+                    {
+                        current += 2;
+                        Valid_token("*=", "AO");
+                        return true;
+                    }
+                    else if(input[current] == '/')
+                    {
+                        current += 2;
+                        Valid_token("/=", "AO");
+                        return true;
+                    }
+                    else if(input[current] == '%')
+                    {
+                        current += 2;
+                        Valid_token("%=", "AO");
+                        return true;
+                    }
+                    /*current += 2;
+                    Valid_token("+=", "increment");
+                    return true;*/
+                }
+                // if (input[index + 1] == '=')
+                // {
+                //     temp += input[index];
+                //     index++;
+                //     temp += input[index];
+                //     index++;
+
+                //     generate_token(temp, "arthmetic_assign");
+                //     return true;
+                // }
+                // else
+                {
+                    Valid_token(input[current].ToString(), "MDM");  // Multiply, Divide, Modulo = MDM (AO)
+                    current++;
+                    return true;
+                }
+            }//
+
+
+            else if (input[current] == '&')
+            {
+                if (input[current + 1] == '&')  // &&
+                {
+                    current += 2;
+                    Valid_token("&&", "LO");
+                    return true;
+                }
+                else
+                {
+                    current++;
+                    Invalid_token("&");
+                    return false;
+                }
+            }//
+
+
+            else if (input[current] == '|')
+            {
+                if (input[current + 1] == '|')  // ||
+                {
+                    current += 2;
+                    Valid_token("||", "LO");
+                    return true;
+                }
+                else
+                {
+                    current++;
+                    Invalid_token("|");
+                    return false;
+                }
+            }//
+
+
+            else if (input[current] == '<' || input[current] == '>')
+            {
+                if (input[current + 1] == '<' || input[current + 1] == '>') 
+                {
+                   /* if(input[current + 1] == '<')
+                    {
+                        Valid_token(input[current] + "<", "CRO");
+                        current += 2;
+                        return true;
+                    }
+                    else if(input[current + 1] == '>')
+                    {
+                        Valid_token(input[current] + ">", "CRO");
+                        current += 2;
+                        return true;
+                    }*/
+                    if(input[current] == '<' && input[current + 1] == '<')
+                    {
+                        Valid_token(input[current] + "<", "CRO");
+                        current += 2;
+                        return true;
+                    }
+                    else if (input[current] == '>' && input[current + 1] == '>')
+                    {
+                        Valid_token(input[current] + ">", "CRO");
+                        current += 2;
+                        return true;
+                    }
+                    /*Valid_token(input[current]+">","RO");
+                    current += 2;
+                    return true;*/
+                }
+                if (input[current+1] == '=')  // <=     >=
+                {
+                    Valid_token(input[current] + "=", "RO");
+                    current += 2;
+                    return true;
+                }
+                else // < >
+                {
+                    Valid_token(input[current].ToString(), "RO");
+                    current++;
+                    return true;
+                }
+            }//
+
+
+            else if (input[current] == '!')
+            {
+                if (input[current+1] == '=')  // !=
+                {
+                    current += 2;
+                    Valid_token("!=", "RO");
+                    return true;
+                }
+                else  // !
+                {
+                    current++;
+                    Valid_token("!", "not");
+                    return true;
+
+                }
+            }//
+
+
+            else if (input[current] == '=')
+            {
+                if (input[current+1] == '=')  // ==
+                {
+                    current += 2;
+                    Valid_token("==", "RO");
+                    return true;
+                }
+                else  // =
+                {
+                    current++;
+                    Valid_token("=", "Assign");
+                    return true;
+                }
+
+            }//
+
+
+            else if (input[current] == '.')
+            {
+                if (RE_digit.IsMatch(input[current+1].ToString()))  //for float, next char is num
+                {
+                    temp = "";
+                    bool error_flag = false;
+                    // . got inside
+                    temp += input[current];  
+                    //temp = temp + input[current];
+                    current++;
+                    //first number after dot got inside
+                    temp += input[current];
+                    //temp = temp + input[current];
+                    current++;
+
+                    while (true)
+                    {
+                        if (RE_digit.IsMatch(input[current].ToString()))
+                        {
+                            temp += input[current];
+                            current++;
+                        }
+                        else if (RE_alpha.IsMatch(input[current].ToString()))  //invalid token
+                        {
+                            temp += input[current];
+                            current++;
+                            error_flag = true;  
+                        }
+                        else
+                        {  //token or error
+                            if (error_flag)
+                            {
+                                Invalid_token(temp);
+                                return false;
+                            }
+                            else
+                            {
+                                Valid_token(temp, "float-const");
+                                return true;
+                            }
+                        }
+                    }// while loop end
+                }
+                // else just a dot
+                else
+                {
+                    current++;
+                    Valid_token(".", "dot");
+                    return true;
+                }
+            }//
+
+
+            // local symbols
+            else if (symbol_list.TryGetValue(input[current], out result))  // brackets and all that
+            {
+                Valid_token(input[current].ToString(), result);
+                current++;
+                return true;
+            }//
+
+
+            // white space
+            else if (input[current] == ' ' || input[current] == '\t') //ignore
+            {
+                current++;
+                return true;
+            }//
+
+
+            else if (input[current] == '\r') //carriage return
+            {
+                if (input[current+1] == '\n')  //line change
+                {
+                    //System.Console.WriteLine([index+1]);
+                    current++;
+                    line_increase(ref current);
+                    return true;
+                }
+                else
+                {
+                    current++;
+                    return true;
+                }
+            }//
+
+
+            else if (input[current] == '\n')   // line change
+            {
+                line_increase(ref current);
+                return true;
+            }//
+
+
+            else
+            {
+                Invalid_token(input[current].ToString());
+                current++;
+            }
+            return false;
+        }
+        //=======================================================================================
+
+        // ---KW---
+        static bool KW_RE_checker(ref string temp, out string class_type)
+        {
+            if (KW_list.TryGetValue(temp, out class_type))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        //=======================================================================================
+
+        // ---ID---
+        static bool ID_RE_checker(ref string temp, out string class_type)
+        {
+            if (RE_id.IsMatch(temp))
+            {
+                class_type = "ID";
+                return true;
+            }
+            else
+            {
+                class_type = "";
+                return false;
+            }
+        }
+        //=======================================================================================
+
+        // ---Alphabet check for KW, ID---
+        static bool alphabet_checker(ref string input, ref int current)
+        {
+            string type;     // class type
+            string temp = "";
+            temp += input[current];       // a
+            //temp = temp + input[current];
+            //if(input[current] == RE_alpha)  // =====
+
+            while (true) // run till condition false
+            {
+                if (RE_alpha.IsMatch(input[current+1].ToString()))  //alph
+                {
+                    current++;
+                    temp += input[current];
+                }//
+               /* else if()
+                { }*/
+
+
+                else  //KW , ID checker
+                {
+                    if (KW_RE_checker(ref temp, out type))   //KW
+                    {
+                        //Valid_token(temp, type);
+                        //current++;
+                        //return true;
+                        /* if ((input[current+1] == '_' || input[current + 1] == '-') && (input[current+1] != '('))
+                         {
+                             temp = temp + input[current];
+                             current++;
+                         }*/
+                       // if (temp[current + 1] != ' ' || temp[current + 1] != '(')
+                        //{
+                            Valid_token(temp, type);
+                            current++;
+                            return true;
+                       /* }
+                        else
+                        {
+                            current++;
+                            temp = temp + input[current];
+                            
+                        }*/
+                        /*Valid_token(temp, type);
+                        current++;
+                        return true;*/
+                    }
+
+
+                    // i.e identifier or error
+                    else
+                    {
+                        // char.IsWhiteSpace(c)
+                        while (true)
+                        {
+                            // index++;
+                            // if (input[current+1] == '_' || ((int)input[current+1] >= 48 && (int)input[current + 1] <= 57)) //start with _ or 0-9
+                            if ((int)input[current + 1] >= 48 && (int)input[current + 1] <= 57)
+                            {
+                                temp += input[current + 1];
+                                current++;
+                            }
+                            else
+                            {
+                                if (ID_RE_checker(ref temp, out type)) //ID
+                                {
+                                    current++;
+                                    Valid_token(temp, type);
+                                    return true;
+                                }
+                                else
+                                {  //error
+                                    current++;
+                                    Invalid_token(temp);
+                                    return false;
+                                }
+                            }
+                        }// while loop end
+                    }
+                } // if end
+         }}
+        //=======================================================================================
+
+        // ---single quote -> '', for char---
+        static bool single_quote(ref string input, ref int current)
+        {
+            string temp = "";
+            bool back_slash_flag = false;   //b_slash 
+            bool error_flag = false;
+
+            //got first quote inside
+            temp += input[current];
+            //temp = temp + current[current];
+            current++;
+            char[] esc_seq = { '0', '\'', '\"', '\\', 'b', 'n', 't', 'f', 'v' };   //esc_Seq
+
+            while (input[current] != '\n')  //till next line
+            {
+                //got back slash turn on the flag
+                if (input[current] == '\\' && input[current - 1] != '\\') //not comment
+                {
+                    back_slash_flag = true;
+                    error_flag = true;
+
+                    for (int i=0; i<esc_seq.Length; i++)
+                    {
+                        try
+                        {
+                            if (input[current+1] == esc_seq[i])
+                            {
+                                error_flag = false;
+                                break;
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }//
+
+                //got ending quote
+                if (input[current] == '\'')
+                {
+                    if (input[current-1] == '\\' && input[current-2] != '\\')  // check for comment, it must not, just single -> \
+                    {
+                        temp += input[current];
+                        //temp = temp +input[index];    
+                        current++;
+                    }
+                    //otherwise end it error or generate token
+                    else
+                    {
+                        temp += input[current];
+                        //temp = temp +input[index]; 
+                        // Console.WriteLine(temp);
+                        current++;
+
+                        // incase wrong escape sequence
+                        if (error_flag)
+                        {
+                            Invalid_token(temp);
+                            return false;
+                        }
+                        if (back_slash_flag)  // if back slash found, allow only 4 bit
+                        {
+                            if (temp.Length == 4)
+                            {
+                                Valid_token(temp, "char-const");
+                                return true;
+                            }
+                            else //invalid token
+                            {
+                                Invalid_token(temp);
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            if (temp.Length == 3) //otherwise 3 bit for char
+                            {
+                                Valid_token(temp, "char-const");
+                                return true;
+                            }
+                            else
+                            {
+                                Invalid_token(temp);
+                                return false;
+                            }
+                        }
+                    }
+                }// if
+                //simple going on
+                else
+                {
+                    temp += input[current];
+                    //temp = temp +input[index]; 
+                    // Console.WriteLine(temp);
+                    current++;
+                }
+            } // while loop end
+            //means char ended due to line change char therefore error
+            Invalid_token(temp);
+            //here mean ended at /n
+            return false;
+        }
+        //=======================================================================================
+
+        // ---double quote -> "", for string---
+        static bool double_quote(ref string input, ref int current)
+        {
+            string temp = "";
+            temp += input[current];  
+            //temp = temp + input[current];  "
+            current++;  //  char by char
+
+           // if(temp[current].Equals("\""))
+
+                while (current < input.Length)   //read till end
+                {
+                    if (input[current] == '\r')   //"---------------/r -> Invalid token (\n)
+                    {
+                        //current++;
+                        Invalid_token(temp);
+                        line_increase(ref current);
+                        return false;
+                    }//
+                    if (input[current] == '\"')  //"---------------" -> found    start "
+                    {
+                        if (input[current-1] == '\\')  //check if in previous index isn't \, if yes than next char(") ignore
+                        {
+                          if(input[current-2] == '\\')
+                          {
+                            temp += input[current];
+                            //temp = temp + input[current];
+                            current++;
+                            Valid_token(temp, "string-const");
+                            return true;
+                          }
+                            temp += input[current];         //must be ignore       ----\"
+                            //temp = temp + input[current];
+                            temp += input[current + 1];
+                            current += 2;
+                            //current = current + 2;
+                        }
+                        else
+                        {
+                            //generate token
+                            temp += input[current];
+                            //temp = temp + input[current];
+                            current++;
+                            Valid_token(temp, "string-const");
+                            return true;
+                        }
+                    }//
+                    else
+                    {
+                        temp += input[current];
+                        //temp = temp + input[index];
+                        current++;
+                    }//
+                }// while loop end
+            return false;
+        }
+        //=======================================================================================
+
+       
+
+        // ---MAIN---
+        static void Main(string[] args)
+        {
+            // Connecting source file 
+            string source_file = File.ReadAllText("./Input.txt");
+            source_file += " ";                               //read char-by-char
+            string path = "./tokens.txt";
+            File.WriteAllText(path, "");                      //token destination
+            //File.WriteAllText("./T_Syntax.txt", "");        //tokens_for_syntex
+
+            int i=0;
+            while (i < source_file.Length)                    //Read till end of source file
+            {
+                // Comments
+                if (source_file[i] == '/')
+                {
+                    // single-line comment
+                    if (source_file[i+1] == '/')
+                    {
+                        //i = i + 2;  //i +=2
+                        SL_comment(ref source_file, ref i);  
+                    }
+                    // multiline comment
+                    if (source_file[i+1] == '*')
+                    {
+                        //System.Console.WriteLine("..");
+                        //i = i + 2;  
+                        ML_comment(ref source_file, ref i);
+                    }
+                }//
+
+                //  NOT Single quote-> ''  double quote-> ""
+                if (source_file[i] != '\'' && source_file[i] != '\"')
+                {
+                    //start with alpha/ kW/ ID/ or Invalid
+                    if (RE_alpha.IsMatch(source_file[i].ToString()))          //start with alpha/ KW
+                    {
+                        alphabet_checker(ref source_file, ref i);
+                    }
+                    else if (RE_digit.IsMatch(source_file[i].ToString()))        //start with digit
+                    {
+                        digit_checker(ref source_file, ref i);
+                    }
+                    else if (RE_punc.IsMatch(source_file[i].ToString()))   //symbols/ punctuator
+                    {
+                        punctuators(ref source_file, ref i);
+                    }
+                }
+                else if (source_file[i] == '\'')  //single quote-> '' , for char
+                {
+                    single_quote(ref source_file, ref i);
+                }
+                else if (source_file[i] == '\"')  //double quote-> "" , for string
+                {
+                    double_quote(ref source_file, ref i);
+                }
+            }//end of while loop
+        }//=======================================================================================================
+    }
+}

@@ -1,0 +1,91 @@
+class it
+{
+        "strjnjn 
+	int a=5,b=6,v=4;
+	int x= a+4-5*b+c;
+        int ch= -7;
+
+        console.WriteLine("fffhdefgtvf
+        hvtgg");
+ 
+}
+
+
+
+//
+
+
+
+
+
+/*
+  All lexical tokens - not syntactically correct, but that will
+  have to wait until syntax analysis
+ */
+/* Print   */  print    /* Sub     */  -
+/* Putc    */  putc     /* Lss     */  <
+/* If      */  if       /* Gtr     */  >
+/* Else    */  else     /* Leq     */  <=
+/* While   */  while    /* Geq     */  >=
+/* Lbrace  */  {        /* Eq      */  ==
+/* Rbrace  */  }        /* Neq     */  !=
+/* Lparen  */  (        /* And     */  &&
+/* Rparen  */  )        /* Or      */  ||
+/* Uminus  */  -        /* Semi    */  ;
+/* Not     */  !        /* Comma   */  ,
+/* Mul     */  *        /* Assign  */  =
+/* Div     */  /        /* Integer */  42
+/* Mod     */  %        /* String  */  "String literal"
+/* Add     */  +        /* Ident   */  variable_name
+/* character literal */  '\n'
+/* character literal */  '\\'
+/* character literal */  ' '
+}
+
+
+
+
+
+
+}///
+
+
+
+a = 1071;
+b = 1029;
+ 
+while (b != 0) {
+    new_a = b;
+    b     = a % b;
+    a     = new_a;
+}
+print(a);
+
+
+
+
+
+
+
+
+
+
+/*
+
+
+
+
+
+
+*/
+
+
+
+
+
+ while(a<<<=b!=96)
+    {
+        integer a ="a+b*c//c!=d//+bc"
+        string S='r'+'11'+'\\na'+5
+        return a++++=b//c
+    }

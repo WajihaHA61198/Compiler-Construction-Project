@@ -1,0 +1,9 @@
+main()
+{
+    while(a<<<=b!=96)
+    {
+        integer a ="a+b*c//c!=d//+bc"
+        string S='r'+'11'+'\\na'+5
+        return a++++=b//c
+    }
+}

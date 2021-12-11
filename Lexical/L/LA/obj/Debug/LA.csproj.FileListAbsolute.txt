@@ -1,0 +1,7 @@
+C:\Users\Wajiha Hanif Arain\source\repos\LA\LA\bin\Debug\LA.exe.config
+C:\Users\Wajiha Hanif Arain\source\repos\LA\LA\bin\Debug\LA.exe
+C:\Users\Wajiha Hanif Arain\source\repos\LA\LA\bin\Debug\LA.pdb
+C:\Users\Wajiha Hanif Arain\source\repos\LA\LA\obj\Debug\LA.csproj.CoreCompileInputs.cache
+C:\Users\Wajiha Hanif Arain\source\repos\LA\LA\obj\Debug\LA.exe
+C:\Users\Wajiha Hanif Arain\source\repos\LA\LA\obj\Debug\LA.pdb
+C:\Users\Wajiha Hanif Arain\source\repos\LA\LA\obj\Debug\LA.csprojAssemblyReference.cache

@@ -1,0 +1,6 @@
+class it
+{
+	int a=5,b=6,v=4;
+	int x= a+4-5*b+c;
+ 
+}

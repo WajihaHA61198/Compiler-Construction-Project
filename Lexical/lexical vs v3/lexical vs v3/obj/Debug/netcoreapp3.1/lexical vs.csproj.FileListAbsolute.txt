@@ -1,0 +1,26 @@
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\bin\Debug\netcoreapp3.1\lexical vs.exe
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\bin\Debug\netcoreapp3.1\lexical vs.deps.json
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\bin\Debug\netcoreapp3.1\lexical vs.runtimeconfig.json
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\bin\Debug\netcoreapp3.1\lexical vs.runtimeconfig.dev.json
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\bin\Debug\netcoreapp3.1\lexical vs.dll
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\bin\Debug\netcoreapp3.1\lexical vs.pdb
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\obj\Debug\netcoreapp3.1\lexical vs.csprojAssemblyReference.cache
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\obj\Debug\netcoreapp3.1\lexical vs.AssemblyInfoInputs.cache
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\obj\Debug\netcoreapp3.1\lexical vs.AssemblyInfo.cs
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\obj\Debug\netcoreapp3.1\lexical vs.csproj.CoreCompileInputs.cache
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\obj\Debug\netcoreapp3.1\lexical vs.dll
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\obj\Debug\netcoreapp3.1\lexical vs.pdb
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs\obj\Debug\netcoreapp3.1\lexical vs.genruntimeconfig.cache
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\bin\Debug\netcoreapp3.1\lexical vs.exe
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\bin\Debug\netcoreapp3.1\lexical vs.deps.json
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\bin\Debug\netcoreapp3.1\lexical vs.runtimeconfig.json
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\bin\Debug\netcoreapp3.1\lexical vs.runtimeconfig.dev.json
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\bin\Debug\netcoreapp3.1\lexical vs.dll
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\bin\Debug\netcoreapp3.1\lexical vs.pdb
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\obj\Debug\netcoreapp3.1\lexical vs.csprojAssemblyReference.cache
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\obj\Debug\netcoreapp3.1\lexical vs.AssemblyInfoInputs.cache
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\obj\Debug\netcoreapp3.1\lexical vs.AssemblyInfo.cs
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\obj\Debug\netcoreapp3.1\lexical vs.csproj.CoreCompileInputs.cache
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\obj\Debug\netcoreapp3.1\lexical vs.dll
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\obj\Debug\netcoreapp3.1\lexical vs.pdb
+C:\Users\nouman\Desktop\6th semester\cc\lexical vs v3\obj\Debug\netcoreapp3.1\lexical vs.genruntimeconfig.cache
